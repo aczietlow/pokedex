@@ -1,5 +1,11 @@
 package main
 
+import "github.com/aczietlow/pokedex/pkg/pokeapi"
+
 func main() {
-	startRepl()
+	pokeClient := pokeapi.NewClient()
+	conf := &config{
+		apiClient: pokeClient,
+	}
+	startRepl(conf)
 }

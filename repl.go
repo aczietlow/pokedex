@@ -5,17 +5,26 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/aczietlow/pokedex/pkg/pokeapi"
 )
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
 }
 
 var registry map[string]cliCommand
 
-func startRepl() {
+type config struct {
+	apiClient pokeapi.Client
+	mapPager  int
+}
+
+// var mapPager int
+
+func startRepl(conf *config) {
 	scanner := bufio.NewScanner(os.Stdin)
 	registry = registerCommands()
 	fmt.Print("Pokedex > ")
@@ -24,7 +33,10 @@ func startRepl() {
 
 		commandName := cliInput[0]
 		if command, ok := registry[commandName]; ok {
-			command.callback()
+			err := command.callback(conf)
+			if err != nil {
+				fmt.Printf("Error: %s\n", err)
+			}
 		} else {
 			fmt.Print("Unknown command\n")
 		}
@@ -43,6 +55,16 @@ func registerCommands() map[string]cliCommand {
 			name:        "help",
 			description: "Displays a help message",
 			callback:    commandHelp,
+		},
+		"map": cliCommand{
+			name:        "map",
+			description: "List map locations, 20 at a time",
+			callback:    commandMap,
+		},
+		"mapb": cliCommand{
+			name:        "mapb",
+			description: "Fetch the previous 20 locations",
+			callback:    commandMapB,
 		},
 	}
 }
