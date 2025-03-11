@@ -21,39 +21,49 @@ func NewCache(interval time.Duration) Cache {
 		mux: &sync.Mutex{},
 	}
 
-	cache.reapLoop()
+	go cache.cacheCleanup(interval)
+
 	return cache
 }
 
 func (c *Cache) Add(key string, val []byte) {
 	c.mux.Lock()
+	defer c.mux.Unlock()
 	if _, exists := c.Entry[key]; exists == false {
 		c.Entry[key] = CacheEntry{
 			createdAt: time.Now(),
 			val:       val,
 		}
 	}
-	c.mux.Unlock()
 }
 
 func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mux.Lock()
+	defer c.mux.Unlock()
 	if entry, exists := c.Entry[key]; exists == true {
 		c.mux.Unlock()
 		return entry.val, exists
 	}
 
-	c.mux.Unlock()
 	return nil, false
-
 }
 
 func (c *Cache) reapLoop() {
 	c.mux.Lock()
+	defer c.mux.Unlock()
 	for key, ce := range c.Entry {
 		if time.Now().Sub(ce.createdAt) > c.ttl {
 			delete(c.Entry, key)
 		}
 	}
-	c.mux.Unlock()
+}
+
+func (c *Cache) cacheCleanup(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	// Everytime ticker.C sends a single do a thing
+	for range ticker.C {
+		c.reapLoop()
+	}
 }
