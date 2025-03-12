@@ -18,7 +18,8 @@ type CacheEntry struct {
 
 func NewCache(interval time.Duration) Cache {
 	cache := Cache{
-		mux: &sync.Mutex{},
+		mux:   &sync.Mutex{},
+		Entry: make(map[string]CacheEntry),
 	}
 
 	go cache.cacheCleanup(interval)
@@ -41,7 +42,6 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	if entry, exists := c.Entry[key]; exists == true {
-		c.mux.Unlock()
 		return entry.val, exists
 	}
 
