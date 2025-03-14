@@ -12,7 +12,7 @@ type location struct {
 	Name string `json:"name"`
 }
 
-func commandMap(conf *config) error {
+func commandMap(conf *config, args ...string) error {
 	err := fetchLocations(conf)
 	if err != nil {
 		return err
@@ -21,7 +21,7 @@ func commandMap(conf *config) error {
 	return nil
 }
 
-func commandMapB(conf *config) error {
+func commandMapB(conf *config, args ...string) error {
 	if conf.mapPager <= 40 {
 		conf.mapPager = 0
 	} else {
@@ -37,7 +37,7 @@ func commandMapB(conf *config) error {
 }
 
 func fetchLocations(conf *config) error {
-	locations, err := conf.apiClient.FetchLocations(conf.mapPager)
+	locations, err := conf.apiClient.FetchLocationsList(conf.mapPager)
 	if err != nil {
 		return err
 	}

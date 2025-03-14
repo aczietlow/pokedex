@@ -12,7 +12,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, ...string) error
 }
 
 var registry map[string]cliCommand
@@ -33,7 +33,7 @@ func startRepl(conf *config) {
 
 		commandName := cliInput[0]
 		if command, ok := registry[commandName]; ok {
-			err := command.callback(conf)
+			err := command.callback(conf, cliInput[1:]...)
 			if err != nil {
 				fmt.Printf("Error: %s\n", err)
 			}
@@ -65,6 +65,11 @@ func registerCommands() map[string]cliCommand {
 			name:        "mapb",
 			description: "Fetch the previous 20 locations",
 			callback:    commandMapB,
+		},
+		"explore": cliCommand{
+			name:        "explore {name-or-id}",
+			description: "Fetch data on a specific area",
+			callback:    commandExplore,
 		},
 	}
 }

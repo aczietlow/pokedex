@@ -1,61 +1,64 @@
 package pokeapi
 
 import (
-	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 )
 
-type locationAreas struct {
-	// Location []location `json:"results"`
-	Locations []struct {
+type locationArea struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Location struct {
 		Name string `json:"name"`
-	} `json:"results"`
+		URL  string `json:"url"`
+	} `json:"location"`
+	Names []struct {
+		Name     string `json:"name"`
+		Language struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"language"`
+	} `json:"names"`
+	PokemonEncounters []struct {
+		Pokemon struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"pokemon"`
+	} `json:"pokemon_encounters"`
 }
 
-type location struct {
-	Name string `json:"name"`
-}
+func (c *Client) FetchLocationArea(locationName string) (locationArea, error) {
+	url := baseURL + "/location-area/" + locationName
 
-func (c *Client) FetchLocations(pager int) (locationAreas, error) {
-	offset := strconv.Itoa(pager)
-	url := baseURL + "/location-area?limit=20&offset=" + offset
-
-	// _, ok := c.cache.Get(url)
-	// fmt.Printf("debug\nurl:%v\ncache:%v\n", url, ok)
 	if body, exists := c.cache.Get(url); exists {
-		// fmt.Println("cache hit")
-		// fmt.Printf("data:\n%s\n", body)
-		var locations locationAreas
-		decoder := json.NewDecoder(bytes.NewReader(body))
-		if err := decoder.Decode(&locations); err != nil {
-			return locationAreas{}, err
+		location := locationArea{}
+		if err := json.Unmarshal(body, &location); err != nil {
+			return locationArea{}, err
 		}
-
-		return locations, nil
 	}
 
-	response, err := http.Get(url)
+	resp, err := c.httpClient.Get(url)
 	if err != nil {
-		return locationAreas{}, err
+		return locationArea{}, fmt.Errorf("Received a %s response from api", resp.StatusCode)
 	}
-	defer response.Body.Close()
 
-	// TODO: Reading from the same io.Reader twice is dirty, should fix this.
-	body, err := io.ReadAll(response.Body)
+	if resp.StatusCode != http.StatusOK {
+		return locationArea{}, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return locationAreas{}, err
+		return locationArea{}, err
 	}
 
-	var locations locationAreas
-	decoder := json.NewDecoder(bytes.NewReader(body))
-	if err = decoder.Decode(&locations); err != nil {
-		return locationAreas{}, err
+	location := locationArea{}
+	if err = json.Unmarshal(body, &location); err != nil {
+		return locationArea{}, err
 	}
 
 	c.cache.Add(url, body)
+	return location, nil
 
-	return locations, nil
 }
