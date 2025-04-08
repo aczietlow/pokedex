@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type pokemon struct {
+type Pokemon struct {
 	ID             int    `json:"id"`
 	Name           string `json:"name"`
 	BaseExperience int    `json:"base_experience"`
@@ -45,36 +45,39 @@ type pokemon struct {
 	} `json:"types"`
 }
 
-func (c *Client) FetchPokemon(pokemonName string) (pokemon, error) {
+func (c *Client) FetchPokemon(pokemonName string) (Pokemon, error) {
 	url := baseURL + "/pokemon/" + pokemonName
 
 	if body, exists := c.cache.Get(url); exists {
-		p := pokemon{}
+		p := Pokemon{}
 		if err := json.Unmarshal(body, &p); err != nil {
-			return pokemon{}, err
+			return Pokemon{}, err
 		}
 	}
 
 	resp, err := c.httpClient.Get(url)
 	if err != nil {
-		return pokemon{}, fmt.Errorf("Received a %v response from api", resp.StatusCode)
+		return Pokemon{}, fmt.Errorf("Received a %v response from api", resp.StatusCode)
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return Pokemon{}, fmt.Errorf("Pokemon with name or id of %s not found\n", pokemonName)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return pokemon{}, err
+		return Pokemon{}, fmt.Errorf("Recieved a %v response from api\n", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return pokemon{}, err
+		return Pokemon{}, err
 	}
 
-	p := pokemon{}
+	p := Pokemon{}
 	if err = json.Unmarshal(body, &p); err != nil {
-		return pokemon{}, err
+		return Pokemon{}, err
 	}
 
 	c.cache.Add(url, body)
 	return p, nil
-
 }

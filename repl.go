@@ -22,6 +22,9 @@ type config struct {
 	mapPager  int
 }
 
+// TODO: use map[string]Pokemon instead, maybe without coupling api and main package together.
+var pokedex map[string]string
+
 // var mapPager int
 
 func startRepl(conf *config) {
