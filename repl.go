@@ -18,12 +18,10 @@ type cliCommand struct {
 var registry map[string]cliCommand
 
 type config struct {
-	apiClient pokeapi.Client
-	mapPager  int
+	apiClient      pokeapi.Client
+	mapPager       int
+	pokedexPokemon map[string]pokeapi.Pokemon
 }
-
-// TODO: use map[string]Pokemon instead, maybe without coupling api and main package together.
-var pokedex map[string]string
 
 // var mapPager int
 

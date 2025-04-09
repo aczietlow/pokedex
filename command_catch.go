@@ -20,7 +20,7 @@ func commandCatch(conf *config, args ...string) error {
 
 	if attemptCatch(pokemon.BaseExperience) {
 		fmt.Printf("%s was caught!\n", pokemon.Name)
-		// TODO: add to pokedex
+		conf.pokedexPokemon[pokemon.Name] = pokemon
 		return nil
 	}
 
