@@ -77,6 +77,11 @@ func registerCommands() map[string]cliCommand {
 			description: "catch and add pokemon to pokedex",
 			callback:    commandCatch,
 		},
+		"inspect": cliCommand{
+			name:        "inspect",
+			description: "Displays information of pokemon registered in the pokedex",
+			callback:    commandInspect,
+		},
 	}
 }
 
